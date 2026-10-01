@@ -325,3 +325,17 @@ try {
   console.log(e);
 }
 ```
+
+## Cursor Cloud specific instructions
+
+This Cloud Agent environment checks out several repositories together. Dependency install is handled by the environment install command (Node 20 and Node 22 via nvm, Bun, then each app's package manager). Do not start every dev server at once: Magic UI's Next server uses several gigabytes, and running it beside `ui` (`pnpm --filter=v4 dev`) gets the shadcn/ui dev server OOM-killed on the default VM.
+
+- `magicui`: Node 22, pnpm 9.15.0. From `apps/www`, `pnpm exec next dev --port 3001`. `NEXT_PUBLIC_APP_URL` is optional; the site falls back to its configured URL.
+- `ui`: Node 20, pnpm 10.33.4, Bun. Install already runs `pnpm build:packages` and `pnpm --filter=v4 registry:build --style all`. Dev site: `pnpm --filter=v4 dev` (port 4000). Start it only when the other Next apps are stopped.
+- `open-react-template`: Node 22. `pnpm exec next dev --turbopack --port 3000`. `pnpm build` works. `pnpm lint` prompts to create an ESLint config because the repo does not have one.
+- `shadcn-admin`: Node 20. `pnpm dev` (Vite, port 5173). Sign-in is mocked: any email and a password of at least 7 characters reaches the dashboard. `pnpm lint`, `pnpm test`, and `pnpm build` match CI. Playwright Chromium is installed for the browser tests.
+- `Soft-Coast-Web`: `public-site/` is static HTML. `portal/` is Next.js on Node 20 (`npm run dev`). Lint, typecheck, and build succeed without secrets. Login and data routes need the Supabase variables in `portal/.env.example`; without them the login page renders and sign-in fails closed.
+- `hvac-instant-lead-response`: static pricing page in `landing/`. Checkout buttons are intentionally disabled. Workflow JSON is under `workflows/`.
+- `escalating-invoice-chase`: n8n workflow JSON. `./scripts/scrub-credentials.sh` checks tracked files for credential-shaped assignments.
+- `type`: `printf 'Ada\n' | python3 main.py`.
+- `youtube-bookmarker-finished-code`: Manifest V3 extension with no package install. `node --check` covers the JavaScript files. Load the folder unpacked in Chrome to exercise it.
